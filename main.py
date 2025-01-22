@@ -42,6 +42,8 @@ async def middleware(request: fastapi.Request, call_next):
             en_re = enstr.encrypt_bytes(response_body,shk)
         else:
             en_re = response_body
+        
+        print(f"Response body (encrypted): {en_re}")
     
         # 重建响应对象
         return fastapi.responses.Response(
@@ -53,8 +55,6 @@ async def middleware(request: fastapi.Request, call_next):
             
     except json.JSONDecodeError:
         print(f"Request body (raw): {decoded_body}")
-    except Exception as e:
-        print(f"Error processing request: {str(e)}")
     
     return await call_next(request)
     

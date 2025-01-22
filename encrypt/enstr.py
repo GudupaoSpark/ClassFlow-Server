@@ -2,21 +2,32 @@ import uuid
 import hashlib
 from Crypto.Cipher import AES
 from Crypto.Util.Padding import pad, unpad
+from typing import Union
 import os
 
 
-def encrypt_bytes(data: bytes, pw:str) -> str:
-    pw = hashlib.sha256(pw.encode('utf-8')).hexdigest()
-    """加密二进制数据（返回Hex字符串）"""
+def encrypt_bytes(data: bytes, pw: Union[str, bytes]) -> str:
+    """加密二进制数据（返回Hex字符串）
+    :param pw: 密码，支持字符串或字节类型
+    """
+    if isinstance(pw, str):
+        pw = hashlib.sha256(pw.encode('utf-8')).hexdigest()
+    else:  # 已经是bytes类型
+        pw = hashlib.sha256(pw).hexdigest()
     key = bytes.fromhex(pw)[:32]
     iv = os.urandom(16)
     cipher = AES.new(key, AES.MODE_CBC, iv)
     encrypted = iv + cipher.encrypt(pad(data, AES.block_size))
     return encrypted.hex()
 
-def decrypt_bytes(encrypted_hex: str, pw: str) -> bytes:
-    pw = hashlib.sha256(pw.encode('utf-8')).hexdigest()
-    """解密Hex字符串为二进制数据"""
+def decrypt_bytes(encrypted_hex: str, pw: Union[str, bytes]) -> bytes:
+    """解密Hex字符串为二进制数据
+    :param pw: 密码，支持字符串或字节类型
+    """
+    if isinstance(pw, str):
+        pw = hashlib.sha256(pw.encode('utf-8')).hexdigest()
+    else:  # 已经是bytes类型
+        pw = hashlib.sha256(pw).hexdigest()
     encrypted = bytes.fromhex(encrypted_hex)
     iv = encrypted[:16]
     ciphertext = encrypted[16:]
