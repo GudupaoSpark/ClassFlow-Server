@@ -1,6 +1,6 @@
 import json
 
-def read(file_path = "data/config.json"):
+def read(file_path = "config/config.json"):
     try:
         with open(file_path, 'r') as file:
             config = json.load(file)
@@ -10,7 +10,7 @@ def read(file_path = "data/config.json"):
     except json.JSONDecodeError:
         return None
 
-def write(data,file_path="data/config.json"):
+def write(data,file_path="config/config.json"):
     try:
         with open(file_path, 'w') as file:
             json.dump(data, file, indent=4)

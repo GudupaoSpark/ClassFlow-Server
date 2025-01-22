@@ -10,8 +10,7 @@ class get_user_Info(BaseModel):
     用户信息
     """
     username: str
-    en_pw: str
-    dh_pub_key: str
+    password: str
 
 router = fastapi.APIRouter(prefix="/v1/user")
 
