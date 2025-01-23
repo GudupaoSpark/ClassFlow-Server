@@ -5,6 +5,7 @@ import init
 import router
 import const
 import base64_tool
+import hashlib
 from encrypt import enstr
 
 app = fastapi.FastAPI()
@@ -19,14 +20,19 @@ async def middleware(request: fastapi.Request, call_next):
         request_body = await request.body()
         decoded_body = request_body.decode()
         json_body = json.loads(decoded_body)
-        print(f"Request body (JSON): {json_body}")
         
+        print(f"Request body")
         if isinstance(json_body, dict) and "enq" in json_body:
             shk = const.dh.generate_shared_key(base64_tool.base64_to_bytes(json_body['enq']))
             # 重构请求体
-            json_body = enstr.decrypt_text(json_body["end"],shk)
+            print(f"DH分享密钥：{hashlib.sha256(shk).hexdigest()}")
+            json_bodyr = enstr.decrypt_text(json_body["end"], shk)
+            print(f"Request body (decrypted): {json_bodyr}")
             en_req = request
-            en_req.body = json.dumps(json_body).encode()
+            en_req._body = json_bodyr.encode()
+            en_req._json = json.loads(json_bodyr)
+            # 重建请求体
+            
         
         # 处理请求
         response = await call_next(en_req)
@@ -39,17 +45,16 @@ async def middleware(request: fastapi.Request, call_next):
         print(f"Response body: {response_body.decode()}")
         
         if isinstance(json_body, dict) and "enq" in json_body:
-            en_re = enstr.encrypt_bytes(response_body,shk)
+            en_re = {"body":enstr.encrypt_bytes(response_body,shk)}
         else:
             en_re = response_body
         
         print(f"Response body (encrypted): {en_re}")
     
         # 重建响应对象
-        return fastapi.responses.Response(
+        return fastapi.responses.JSONResponse(
             content=en_re,
             status_code=response.status_code,
-            headers=dict(response.headers),
             media_type=response.media_type
         )
             
