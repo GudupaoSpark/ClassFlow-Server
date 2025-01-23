@@ -12,6 +12,7 @@ def get_info(username: str, password: str) -> dict:
             if user["pw_hash"] == hashlib.sha256(password.encode()).hexdigest():
                 nu = user
                 nu.pop("pw_hash")
+                nu["success"] = True
                 return nu
     
-    return {"error": "密码错误或用户不存在"}
+    return {"error": "密码错误或用户不存在","success": False}
