@@ -32,6 +32,7 @@ async def middleware(request: fastapi.Request, call_next):
             en_req._body = json_bodyr.encode()
             en_req._json = json.loads(json_bodyr)
             # 重建请求体
+        else: return await call_next(request)
             
         
         # 处理请求
@@ -62,13 +63,23 @@ async def middleware(request: fastapi.Request, call_next):
         print(f"Request body (raw): {decoded_body}")
     
     return await call_next(request)
-    
-    
 
+@app.get('/version')
+def get_version():
+    return {
+        'version': const.VERSION,
+        'version_tag': const.VERSIONTAG, 
+    }
 
-@app.get("/")
-async def root():
-    return {"message": "Welcome use ClassFlow!","copyright":"©️2023-present GudupaoSpark Inc. All rights reserved","License":"MIT License"}
+@app.get('/')
+def index(request: fastapi.Request):
+    path = str(request.base_url)
+    html = const.INDEX.replace("BASE_URL", path)
+    return fastapi.responses.HTMLResponse(html)
+
+@app.get('/favicon.ico')
+def get_favicon():
+    return fastapi.responses.FileResponse('favicon.ico')
 
 if __name__ == "__main__":
     import uvicorn
